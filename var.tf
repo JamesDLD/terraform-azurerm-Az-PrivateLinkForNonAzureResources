@@ -75,14 +75,6 @@ variable "vmss_linux" {
         enable_automatic_os_upgrade = true
       }
     ]
-    rolling_upgrade_policy = [
-      {
-        max_batch_instance_percent              = 20
-        max_unhealthy_instance_percent          = 20
-        max_unhealthy_upgraded_instance_percent = 20
-        pause_time_between_batches              = "PT0S"
-      }
-    ]
     admin_username = "demonatadm"
     instances      = 2
     source_image_reference = [{
