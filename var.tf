@@ -67,12 +67,20 @@ variable "vmss_linux" {
   description = "(Optional) The Virtual Machine Scale Set."
   type        = any
   default = {
-    sku          = "standard_f1s"
+    sku          = "Standard_DS1_v2" #"standard_f1s" #Supports Enabling Accelerated Networking For Vmss
     upgrade_mode = "Automatic"
     automatic_os_upgrade_policy = [
       {
         disable_automatic_rollback  = false
         enable_automatic_os_upgrade = true
+      }
+    ]
+    rolling_upgrade_policy = [
+      {
+        max_batch_instance_percent              = 20
+        max_unhealthy_instance_percent          = 20
+        max_unhealthy_upgraded_instance_percent = 20
+        pause_time_between_batches              = "PT0S"
       }
     ]
     admin_username = "demonatadm"

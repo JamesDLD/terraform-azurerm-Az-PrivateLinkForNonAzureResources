@@ -43,7 +43,8 @@ resource "azurerm_lb" "lbi" {
 }
 
 resource "azurerm_lb_probe" "lb_probe" {
-  name                = "probe22" #(Required) Specifies the name of the Probe.
+  for_each            = var.forwarding_rules
+  name                = "${each.key}-probe22" #(Required) Specifies the name of the Probe.
   resource_group_name = data.azurerm_resource_group.rg.name
   loadbalancer_id     = azurerm_lb.lbi.id
   protocol            = null #(Optional) Specifies the protocol of the end point. Possible values are Http, Https or Tcp. If Tcp is specified, a received ACK is required for the probe to be successful. If Http is specified, a 200 OK response from the specified URI is required for the probe to be successful.
@@ -68,7 +69,7 @@ resource "azurerm_lb_rule" "lb_rule" {
   frontend_port                  = each.value.source_port         #(Required) The port for the external endpoint. Port numbers for each Rule must be unique within the Load Balancer. Possible values range between 0 and 65534, inclusive.
   backend_port                   = each.value.source_port         #(Required) The port used for internal connections on the endpoint. Possible values range between 0 and 65535, inclusive.
   backend_address_pool_id        = azurerm_lb_backend_address_pool.lb_backend_address_pool.id
-  probe_id                       = azurerm_lb_probe.lb_probe.id
+  probe_id                       = [for x in azurerm_lb_probe.lb_probe : x.id if x.name == "${each.key}-probe22"][0]
   enable_floating_ip             = null #(Optional) Are the Floating IPs enabled for this Load Balncer Rule? A "floating” IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group. Defaults to false.
   idle_timeout_in_minutes        = null #(Optional) Specifies the idle timeout in minutes for TCP connections. Valid values are between 4 and 30 minutes. Defaults to 4 minutes.
   load_distribution              = null #(Optional) Specifies the load balancing distribution type to be used by the Load Balancer. Possible values are: Default – The load balancer is configured to use a 5 tuple hash to map traffic to available servers. SourceIP – The load balancer is configured to use a 2 tuple hash to map traffic to available servers. SourceIPProtocol – The load balancer is configured to use a 3 tuple hash to map traffic to available servers. Also known as Session Persistence, where the options are called None, Client IP and Client IP and Protocol respectively.
@@ -139,7 +140,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
   instances                                         = lookup(var.vmss_linux, "instances", null)
   computer_name_prefix                              = lookup(var.vmss_linux, "computer_name_prefix", null)
   do_not_run_extensions_on_overprovisioned_machines = lookup(var.vmss_linux, "do_not_run_extensions_on_overprovisioned_machines", null)
-  health_probe_id                                   = azurerm_lb_probe.lb_probe.id
+  health_probe_id                                   = [for x in azurerm_lb_probe.lb_probe : x.id][0]
   overprovision                                     = lookup(var.vmss_linux, "overprovision", null)
   scale_in_policy                                   = lookup(var.vmss_linux, "scale_in_policy", null)
   single_placement_group                            = lookup(var.vmss_linux, "single_placement_group", null)

@@ -56,6 +56,7 @@ variable "forwarding_rules" {
 #Call module
 module "Az-PrivateLinkForNonAzureResources-Demo" {
   source   = "JamesDLD/Az-PrivateLinkForNonAzureResources/azurerm"
+  version  = "0.1.0"
   location = "westeurope"
   additional_tags = {
     usage = "demo"
