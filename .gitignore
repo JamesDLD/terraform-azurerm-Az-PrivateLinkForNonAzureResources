@@ -4,7 +4,6 @@
 *.DS_Store
 *.tfstate.lock.info
 *.terraform.lock.hcl
-examples/complete/main.tf
 
 # Directory
 .terraform/

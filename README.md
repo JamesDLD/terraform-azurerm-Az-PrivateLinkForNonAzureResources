@@ -1,6 +1,6 @@
 Content
 -----
-Use cases described in the following article : [Access to any non Azure resources with an Azure Private Link (Terraform module)](https://medium.com/@jamesdld23/access-to-any-non-azure-resources-with-an-azure-private-link-b6129992dad9).
+Use cases described in the following article : [Access to any non Azure resources with an Azure Private Link (Terraform module)](https://medium.com/microsoftazure/access-to-any-non-azure-resources-with-an-azure-private-link-terraform-module-b6129992dad9).
 
 This module will create the following objects : 
 
@@ -24,5 +24,5 @@ Examples
 -----
 | Name | Description |
 |------|-------------|
-| complete | Create a private link to reach sftp and sql servers. |
+| [complete](https://github.com/JamesDLD/terraform-azurerm-Az-PrivateLinkForNonAzureResources/tree/main/examples/complete) | Create a private link to reach sftp and sql servers. |
 

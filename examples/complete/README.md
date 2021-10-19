@@ -1,6 +1,7 @@
 Content
 -----
-Use cases described in the following article : [Access to any non Azure resources with an Azure Private Link (Terraform module)](https://medium.com/@jamesdld23/access-to-any-non-azure-resources-with-an-azure-private-link-b6129992dad9).
+Use cases described in the following article : [Access to any non Azure resources with an Azure Private Link (Terraform module)](https://medium.com/microsoftazure/access-to-any-non-azure-resources-with-an-azure-private-link-terraform-module-b6129992dad9).
+
 This module will create the following objects : 
 
 - [Azure Private Link Service](https://docs.microsoft.com/en-us/azure/private-link/private-link-service-overview?WT.mc_id=AZ-MVP-5003548)
@@ -26,11 +27,6 @@ provider "azurerm" {
   features {}
 }
 
-variable "subscription_id" {
-  description = "Azure subscription Id."
-}
-
-#Set variable
 variable "forwarding_rules" {
   description = "Forwarding Rule to Endpoint (cf https://docs.microsoft.com/en-us/azure/data-factory/tutorial-managed-virtual-network-on-premise-sql-server?WT.mc_id=AZ-MVP-5003548&WT.mc_id=AZ-MVP-5003548#creating-forwarding-rule-to-endpoint)."
   type        = any
@@ -69,18 +65,5 @@ module "Az-PrivateLinkForNonAzureResources-Demo" {
   subnet_id_virtual_machine_scale_set = "/subscriptions/xxxxxxxxxxxxxx/resourceGroups/xxxxxxxxxxxxxx/providers/Microsoft.Network/virtualNetworks/xxxxxxxxxxxxxx/subnets/xxxxxxxxxxxxxxsub3"
   forwarding_rules                    = var.forwarding_rules
 }
-
-output "azurerm_lb_id" {
-  value = module.Az-PrivateLinkForNonAzureResources-Demo.lb_id
-}
-
-output "azurerm_linux_virtual_machine_scale_set_id" {
-  value = module.Az-PrivateLinkForNonAzureResources-Demo.linux_virtual_machine_scale_set_id
-}
-
-output "azurerm_private_link_service_id" {
-  value = module.Az-PrivateLinkForNonAzureResources-Demo.private_link_service_id
-}
-
 
 ```

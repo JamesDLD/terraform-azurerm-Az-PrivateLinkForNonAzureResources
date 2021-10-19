@@ -35,11 +35,6 @@ resource "azurerm_lb" "lbi" {
     private_ip_address_version    = "IPv4"                                #The version of IP that the Private IP Address is. Possible values are IPv4 or IPv6.
   }
   tags = local.tags
-  lifecycle {
-    ignore_changes = [
-      tags
-    ]
-  }
 }
 
 resource "azurerm_lb_probe" "lb_probe" {
@@ -104,11 +99,6 @@ resource "azurerm_private_link_service" "pls" {
   enable_proxy_protocol                       = null                                                                                                                                                                                     #(Optional) Should the Private Link Service support the Proxy Protocol? Defaults to false.
   visibility_subscription_ids                 = var.private_link_service_visibility_subscription_ids[0] == "current" ? [data.azurerm_client_config.current.subscription_id] : var.private_link_service_visibility_subscription_ids       #(Optional) A list of Subscription UUID/GUID's that will be able to see this Private Link Service.
   tags                                        = local.tags
-  lifecycle {
-    ignore_changes = [
-      tags
-    ]
-  }
 }
 
 # -
@@ -308,7 +298,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
   // Ignore changes that are managed outside Terraform
   lifecycle {
     ignore_changes = [
-      tags,
       instances
     ]
   }
