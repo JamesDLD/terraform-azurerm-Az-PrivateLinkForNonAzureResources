@@ -16,7 +16,7 @@ High Level View
 
 Requirement
 -----
-Terraform v1.0.6 and above. 
+Terraform v1.1.3 and above. 
 AzureRm provider version v2.81.0 and above.
 
 

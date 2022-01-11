@@ -63,7 +63,6 @@ resource "azurerm_lb_rule" "lb_rule" {
   protocol                       = "Tcp"                          #(Required) The transport protocol for the external endpoint. Possible values are Tcp, Udp or All.
   frontend_port                  = each.value.source_port         #(Required) The port for the external endpoint. Port numbers for each Rule must be unique within the Load Balancer. Possible values range between 0 and 65534, inclusive.
   backend_port                   = each.value.source_port         #(Required) The port used for internal connections on the endpoint. Possible values range between 0 and 65535, inclusive.
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.lb_backend_address_pool.id
   probe_id                       = [for x in azurerm_lb_probe.lb_probe : x.id if x.name == "${each.key}-probe22"][0]
   enable_floating_ip             = null #(Optional) Are the Floating IPs enabled for this Load Balncer Rule? A "floating” IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group. Defaults to false.
   idle_timeout_in_minutes        = null #(Optional) Specifies the idle timeout in minutes for TCP connections. Valid values are between 4 and 30 minutes. Defaults to 4 minutes.
