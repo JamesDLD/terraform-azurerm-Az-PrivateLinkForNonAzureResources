@@ -60,7 +60,7 @@ variable "private_link_service_auto_approval_subscription_ids" {
 variable "azurerm_lb_availability_zone" {
   description = "(Optional) A list of Availability Zones which the Load Balancer's IP Addresses should be created in. Possible values are Zone-Redundant, 1, 2, 3, and No-Zone. Availability Zone can only be updated whenever the name of the front end ip configuration changes. Defaults to Zone-Redundant. No-Zones - A non-zonal resource will be created and the resource will not be replicated or distributed to any Availability Zones."
   type        = string
-  default     = null
+  default     = ["1", "2", "3"]
 }
 
 variable "vmss_linux" {
@@ -85,23 +85,35 @@ variable "vmss_linux" {
     ]
     admin_username = "demonatadm"
     instances      = 2
-    source_image_reference = [{
-      publisher = "Canonical"
-      offer     = "UbuntuServer" #Find specific images : az vm image list --offer UbuntuServer --all --output table 
-      sku       = "18.04-LTS"
-      version   = "latest"
-    }]
-    network_interfaces = [{
-      enable_accelerated_networking = true
-      primary                       = true
-      load_balancer_backend_address_pool_ids = [
-        {
-          lb_backend_address_pool_key = "forwarder"
-        }
-      ]
-    }]
+    source_image_reference = [
+      {
+        publisher = "Canonical"
+        offer     = "UbuntuServer" #Find specific images : az vm image list --offer UbuntuServer --all --output table
+        sku       = "18.04-LTS"
+        version   = "latest"
+      }
+    ]
+    network_interfaces = [
+      {
+        enable_accelerated_networking = true
+        primary                       = true
+        load_balancer_backend_address_pool_ids = [
+          {
+            lb_backend_address_pool_key = "forwarder"
+          }
+        ]
+      }
+    ]
     os_disk = {
       caching = "ReadOnly"
     }
+  }
+}
+
+variable "vmss_linux_admin" {
+  description = "Virtual Machine Scale Set credential option"
+  default = {
+    admin_username       = "none"
+    admin_ssh_public_key = "none"
   }
 }
