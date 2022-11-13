@@ -53,7 +53,6 @@ resource "azurerm_lb_probe" "lb_probe_vmss" {
 resource "azurerm_lb_probe" "lb_probe" {
   for_each            = var.forwarding_rules
   name                = "${each.key}-probe${each.value.source_port}" #(Required) Specifies the name of the Probe.
-  resource_group_name = data.azurerm_resource_group.rg.name
   loadbalancer_id     = azurerm_lb.lbi.id
   protocol            = null
   port                = each.value.source_port
@@ -172,11 +171,17 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
   do_not_run_extensions_on_overprovisioned_machines = lookup(var.vmss_linux, "do_not_run_extensions_on_overprovisioned_machines", null)
   health_probe_id                                   = azurerm_lb_probe.lb_probe_vmss.id
   overprovision                                     = lookup(var.vmss_linux, "overprovision", null)
-  scale_in_policy                                   = lookup(var.vmss_linux, "scale_in_policy", null)
-  single_placement_group                            = lookup(var.vmss_linux, "single_placement_group", null)
-  upgrade_mode                                      = lookup(var.vmss_linux, "upgrade_mode", null)
-  zone_balance                                      = lookup(var.vmss_linux, "zone_balance", null)
-  zones                                             = lookup(var.vmss_linux, "zones", null)
+  dynamic "scale_in" {
+    for_each = lookup(var.vmss_linux, "scale_in", [])
+    content {
+      rule                   = lookup(scale_in.value, "rule", null)
+      force_deletion_enabled = lookup(scale_in.value, "force_deletion_enabled", null)
+    }
+  }
+  single_placement_group = lookup(var.vmss_linux, "single_placement_group", null)
+  upgrade_mode           = lookup(var.vmss_linux, "upgrade_mode", null)
+  zone_balance           = lookup(var.vmss_linux, "zone_balance", null)
+  zones                  = lookup(var.vmss_linux, "zones", null)
 
   dynamic "network_interface" {
     for_each = var.vmss_linux.network_interfaces
