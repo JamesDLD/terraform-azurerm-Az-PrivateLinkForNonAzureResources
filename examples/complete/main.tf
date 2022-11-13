@@ -46,15 +46,15 @@ variable "forwarding_rules" {
   description = "Forwarding Rule to Endpoint (cf https://docs.microsoft.com/en-us/azure/data-factory/tutorial-managed-virtual-network-on-premise-sql-server?WT.mc_id=AZ-MVP-5003548&WT.mc_id=AZ-MVP-5003548#creating-forwarding-rule-to-endpoint)."
   type        = any
   default = {
-    "sql-google-fake" = {
-      source_port         = "1433"
+    "demo1" = {
+      source_port         = "80"
       destination_address = "google.fr"
-      destination_port    = "1433"
+      destination_port    = "80"
     }
-    "sql-google-fake" = {
-      source_port         = "1434"
+    "demo2" = {
+      source_port         = "443"
       destination_address = "bing.fr"
-      destination_port    = "1433"
+      destination_port    = "443"
     }
   }
 }
