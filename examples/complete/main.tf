@@ -46,15 +46,15 @@ variable "forwarding_rules" {
   description = "Forwarding Rule to Endpoint (cf https://docs.microsoft.com/en-us/azure/data-factory/tutorial-managed-virtual-network-on-premise-sql-server?WT.mc_id=AZ-MVP-5003548&WT.mc_id=AZ-MVP-5003548#creating-forwarding-rule-to-endpoint)."
   type        = any
   default = {
-    "demo1" = {
-      source_port         = "80"
-      destination_address = "google.fr"
-      destination_port    = "80"
-    }
-    "demo2" = {
+    "demo-static-website" = {
       source_port         = "443"
-      destination_address = "bing.fr"
+      destination_address = "demoprivatelinksftp.blob.core.windows.net"
       destination_port    = "443"
+    }
+    "demo-sftp" = {
+      source_port         = "223"
+      destination_address = "demoprivatelinksftp.blob.core.windows.net"
+      destination_port    = "22"
     }
   }
 }

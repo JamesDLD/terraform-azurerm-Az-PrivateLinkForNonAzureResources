@@ -41,7 +41,7 @@ resource "azurerm_lb" "lbi" {
 }
 
 resource "azurerm_lb_probe" "lb_probe_vmss" {
-  name                = "vmss-probe22" #(Required) Specifies the name of the Probe.
+  name                = "vmss-probe22"
   loadbalancer_id     = azurerm_lb.lbi.id
   protocol            = null
   port                = 22
@@ -52,7 +52,7 @@ resource "azurerm_lb_probe" "lb_probe_vmss" {
 
 resource "azurerm_lb_probe" "lb_probe" {
   for_each            = var.forwarding_rules
-  name                = "${each.key}-probe${each.value.source_port}" #(Required) Specifies the name of the Probe.
+  name                = "${each.key}-probe${each.value.source_port}"
   loadbalancer_id     = azurerm_lb.lbi.id
   protocol            = null
   port                = each.value.source_port
@@ -68,7 +68,7 @@ resource "azurerm_lb_backend_address_pool" "lb_backend_address_pool_vmss" {
 
 resource "azurerm_lb_rule" "lb_rule" {
   for_each                       = var.forwarding_rules
-  name                           = each.key #(Required) Specifies the name of the LB Rule.
+  name                           = each.key
   loadbalancer_id                = azurerm_lb.lbi.id
   frontend_ip_configuration_name = "${azurerm_lb.lbi.name}fip001"
   protocol                       = "Tcp"
@@ -78,13 +78,13 @@ resource "azurerm_lb_rule" "lb_rule" {
   enable_floating_ip             = null
   idle_timeout_in_minutes        = null
   load_distribution              = null
-  disable_outbound_snat          = null #(Optional) Is snat enabled for this Load Balancer Rule? Default true.
+  disable_outbound_snat          = null
   enable_tcp_reset               = null
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.lb_backend_address_pool_vmss.id]
 }
 
 resource "azurerm_lb_rule" "lb_rule_vmss" {
-  name                           = "vmss" #(Required) Specifies the name of the LB Rule.
+  name                           = "vmss"
   loadbalancer_id                = azurerm_lb.lbi.id
   frontend_ip_configuration_name = "${azurerm_lb.lbi.name}fip001"
   protocol                       = "Tcp"
@@ -94,7 +94,7 @@ resource "azurerm_lb_rule" "lb_rule_vmss" {
   enable_floating_ip             = null
   idle_timeout_in_minutes        = null
   load_distribution              = null
-  disable_outbound_snat          = null #(Optional) Is snat enabled for this Load Balancer Rule? Default true.
+  disable_outbound_snat          = null
   enable_tcp_reset               = null
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.lb_backend_address_pool_vmss.id]
 }
