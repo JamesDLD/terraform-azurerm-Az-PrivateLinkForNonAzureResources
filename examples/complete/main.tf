@@ -61,7 +61,7 @@ variable "forwarding_rules" {
 
 variable "virtual_network" {
   default = {
-    name          = "hashicorp-privatelink-npd-vnet4"
+    name          = "module-private-link-noprd-vnet4"
     address_space = ["10.0.128.0/24", "198.18.2.0/24"]
     subnets = {
       privatelink = {
@@ -105,6 +105,35 @@ resource "azurerm_subnet" "Demo" {
   address_prefixes                              = each.value.address_prefixes
   private_link_service_network_policies_enabled = lookup(each.value, "private_link_service_network_policies_enabled", null)
   #(Optional) Enable or Disable network policies for the private link service on the subnet. Default valule is false. Conflicts with enforce_private_link_endpoint_network_policies.
+}
+
+#NAT Gateway
+resource "azurerm_public_ip" "Demo-nat-gateway" {
+  name                = "module-private-link-nat-gateway-pip"
+  location            = data.azurerm_resource_group.rg.location
+  resource_group_name = data.azurerm_resource_group.rg.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  zones               = ["1"]
+}
+
+resource "azurerm_nat_gateway" "Demo" {
+  name                    = "module-private-link-nat-gateway"
+  location                = data.azurerm_resource_group.rg.location
+  resource_group_name     = data.azurerm_resource_group.rg.name
+  sku_name                = "Standard"
+  idle_timeout_in_minutes = 10
+  zones                   = ["1"]
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "Demo" {
+  nat_gateway_id       = azurerm_nat_gateway.Demo.id
+  public_ip_address_id = azurerm_public_ip.Demo-nat-gateway.id
+}
+
+resource "azurerm_subnet_nat_gateway_association" "Demo-Subnet-compute" {
+  subnet_id      = azurerm_subnet.Demo["compute"].id
+  nat_gateway_id = azurerm_nat_gateway.Demo.id
 }
 
 #Call module
