@@ -5,6 +5,7 @@ FEATURES:
 * Upgrade to AzureRm provider 3.31.0 and above.
 
 ENHANCEMENTS:
+* Implement a CI CD pipeline.
 * Delete the deprecated version constraint in the azurerm provider.
 * Code formatting with IntelliJ and `terraform fmt -recursive`.
 * Add a change log file.
