@@ -17,6 +17,7 @@ schedules:
     displayName: Weekly Friday 17h10 am UTC build
     always: true
 
+
 variables:
   - name: vmImageName
     value: "ubuntu-latest"
