@@ -1,3 +1,7 @@
+Test
+-----
+[![Build Status](https://dev.azure.com/jamesdld23/vpc_lab/_apis/build/status/Terraform%20module%20Az-PrivateLinkForNonAzureResources?repoName=JamesDLD%2Fterraform-azurerm-Az-PrivateLinkForNonAzureResources&branchName=release%2F0.2.0)](https://dev.azure.com/jamesdld23/vpc_lab/_build/latest?definitionId=20&repoName=JamesDLD%2Fterraform-azurerm-Az-PrivateLinkForNonAzureResources&branchName=release%2F0.2.0)
+
 Content
 -----
 Use cases described in the following article : [Access to any non Azure resources with an Azure Private Link (Terraform module)](https://medium.com/@jamesdld23/access-to-any-non-azure-resources-with-an-azure-private-link-b6129992dad9)
