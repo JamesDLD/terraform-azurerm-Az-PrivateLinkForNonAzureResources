@@ -12,3 +12,7 @@ examples/complete/main.tf
 # Secret files
 **/secret/*.json
 **/secret/*.tfvars
+
+# JetBrains IntelliJ IDEA
+*.iml
+.idea/

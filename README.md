@@ -27,7 +27,7 @@ AzureRm provider version v2.81.0 and above.
 Examples
 -----
 
-| Name | Description |
-|------|-------------|
-| complete | Create a private link to reach sftp and sql servers. |
-
+| Name                 | Description |
+|----------------------|-------------|
+| complete             | Create a private link to reach sftp and sql servers. |
+| demo-hasicorp-meetup | Demo used during the [[HUG] Meetup Paris #17 - Novembre 2022](https://www.meetup.com/fr-FR/Hashicorp-User-Group-Paris/events/289541806/?utm_medium=email&utm_source=braze_canvas&utm_campaign=mmrk_alleng_event_announcement_prod_v7_fr&utm_term=promo&utm_content=lp_meetup) |
