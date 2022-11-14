@@ -1,5 +1,3 @@
-
-
 # -
 # - Terraform's modules : rules of the game --> https://www.terraform.io/docs/modules/index.html
 # -
@@ -28,47 +26,77 @@ resource "azurerm_lb" "lbi" {
   sku                 = "Standard"
   frontend_ip_configuration {
     name                          = "${var.prefix}lbi${var.suffix}fip001" #(Required) Specifies the name of the frontend ip configuration.
-    availability_zone             = var.azurerm_lb_availability_zone      #(Optional) A list of Availability Zones which the Load Balancer's IP Addresses should be created in. Possible values are Zone-Redundant, 1, 2, 3, and No-Zone. Defaults to Zone-Redundant. No-Zones - A non-zonal resource will be created and the resource will not be replicated or distributed to any Availability Zones. 1, 2 or 3 (e.g. single Availability Zone) - A zonal resource will be created and will be replicate or distribute to a single specific Availability Zone. Zone-Redundant - A zone-redundant resource will be created and will replicate or distribute the resource across all three Availability Zones automatically.
-    subnet_id                     = var.subnet_id_load_balancer           #The ID of the Subnet which should be associated with the IP Configuration.
-    private_ip_address            = null                                  #(Optional) Private IP Address to assign to the Load Balancer. The last one and first four IPs in any range are reserved and cannot be manually assigned.
-    private_ip_address_allocation = null                                  #(Optional) The allocation method for the Private IP Address used by this Load Balancer. Possible values as Dynamic and Static.
-    private_ip_address_version    = "IPv4"                                #The version of IP that the Private IP Address is. Possible values are IPv4 or IPv6.
+    zones                         = var.azurerm_lb_availability_zone
+    subnet_id                     = var.subnet_id_load_balancer
+    private_ip_address            = null
+    private_ip_address_allocation = null
+    private_ip_address_version    = "IPv4"
   }
   tags = local.tags
+  lifecycle {
+    ignore_changes = [
+      tags
+    ]
+  }
+}
+
+resource "azurerm_lb_probe" "lb_probe_vmss" {
+  name                = "vmss-probe22"
+  loadbalancer_id     = azurerm_lb.lbi.id
+  protocol            = null
+  port                = 22
+  request_path        = null
+  interval_in_seconds = 15
+  number_of_probes    = 2
 }
 
 resource "azurerm_lb_probe" "lb_probe" {
   for_each            = var.forwarding_rules
-  name                = "${each.key}-probe22" #(Required) Specifies the name of the Probe.
-  resource_group_name = data.azurerm_resource_group.rg.name
+  name                = "${each.key}-probe${each.value.source_port}"
   loadbalancer_id     = azurerm_lb.lbi.id
-  protocol            = null #(Optional) Specifies the protocol of the end point. Possible values are Http, Https or Tcp. If Tcp is specified, a received ACK is required for the probe to be successful. If Http is specified, a 200 OK response from the specified URI is required for the probe to be successful.
-  port                = "22" #(Required) Port on which the Probe queries the backend endpoint. Possible values range from 1 to 65535, inclusive.
-  request_path        = null #(Optional) The URI used for requesting health status from the backend endpoint. Required if protocol is set to Http or Https. Otherwise, it is not allowed.
-  interval_in_seconds = 15   #(Optional) The interval, in seconds between probes to the backend endpoint for health status. The default value is 15, the minimum value is 5.
-  number_of_probes    = 2    #(Optional) The number of failed probe attempts after which the backend endpoint is removed from rotation. The default value is 2. NumberOfProbes multiplied by intervalInSeconds value must be greater or equal to 10.Endpoints are returned to rotation when at least one probe is successful.
+  protocol            = null
+  port                = each.value.source_port
+  request_path        = null
+  interval_in_seconds = 15
+  number_of_probes    = 2
 }
 
-resource "azurerm_lb_backend_address_pool" "lb_backend_address_pool" {
-  name            = "forwarder" #(Required) Specifies the name of the Backend Address Pool.
+resource "azurerm_lb_backend_address_pool" "lb_backend_address_pool_vmss" {
+  name            = "forwarder-vmss-probed-on-22" #(Required) Specifies the name of the Backend Address Pool.
   loadbalancer_id = azurerm_lb.lbi.id
 }
 
 resource "azurerm_lb_rule" "lb_rule" {
   for_each                       = var.forwarding_rules
-  name                           = each.key #(Required) Specifies the name of the LB Rule.
-  resource_group_name            = data.azurerm_resource_group.rg.name
+  name                           = each.key
   loadbalancer_id                = azurerm_lb.lbi.id
-  frontend_ip_configuration_name = "${azurerm_lb.lbi.name}fip001" #(Required) The name of the frontend IP configuration to which the rule is associated.
-  protocol                       = "Tcp"                          #(Required) The transport protocol for the external endpoint. Possible values are Tcp, Udp or All.
-  frontend_port                  = each.value.source_port         #(Required) The port for the external endpoint. Port numbers for each Rule must be unique within the Load Balancer. Possible values range between 0 and 65534, inclusive.
-  backend_port                   = each.value.source_port         #(Required) The port used for internal connections on the endpoint. Possible values range between 0 and 65535, inclusive.
-  probe_id                       = [for x in azurerm_lb_probe.lb_probe : x.id if x.name == "${each.key}-probe22"][0]
-  enable_floating_ip             = null #(Optional) Are the Floating IPs enabled for this Load Balncer Rule? A "floating” IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group. Defaults to false.
-  idle_timeout_in_minutes        = null #(Optional) Specifies the idle timeout in minutes for TCP connections. Valid values are between 4 and 30 minutes. Defaults to 4 minutes.
-  load_distribution              = null #(Optional) Specifies the load balancing distribution type to be used by the Load Balancer. Possible values are: Default – The load balancer is configured to use a 5 tuple hash to map traffic to available servers. SourceIP – The load balancer is configured to use a 2 tuple hash to map traffic to available servers. SourceIPProtocol – The load balancer is configured to use a 3 tuple hash to map traffic to available servers. Also known as Session Persistence, where the options are called None, Client IP and Client IP and Protocol respectively.
-  disable_outbound_snat          = null #(Optional) Is snat enabled for this Load Balancer Rule? Default false.
-  enable_tcp_reset               = null #(Optional) Is TCP Reset enabled for this Load Balancer Rule? Defaults to false.                                                        #(Optional) The number of failed probe attempts after which the backend endpoint is removed from rotation. The default value is 2. NumberOfProbes multiplied by intervalInSeconds value must be greater or equal to 10.Endpoints are returned to rotation when at least one probe is successful.
+  frontend_ip_configuration_name = "${azurerm_lb.lbi.name}fip001"
+  protocol                       = "Tcp"
+  frontend_port                  = each.value.source_port
+  backend_port                   = each.value.source_port
+  probe_id                       = lookup(each.value, "use_vmss_probe", null) == true ? azurerm_lb_probe.lb_probe_vmss.id : azurerm_lb_probe.lb_probe[each.key].id
+  enable_floating_ip             = null
+  idle_timeout_in_minutes        = null
+  load_distribution              = null
+  disable_outbound_snat          = null
+  enable_tcp_reset               = null
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.lb_backend_address_pool_vmss.id]
+}
+
+resource "azurerm_lb_rule" "lb_rule_vmss" {
+  name                           = "vmss"
+  loadbalancer_id                = azurerm_lb.lbi.id
+  frontend_ip_configuration_name = "${azurerm_lb.lbi.name}fip001"
+  protocol                       = "Tcp"
+  frontend_port                  = 22
+  backend_port                   = 22
+  probe_id                       = azurerm_lb_probe.lb_probe_vmss.id
+  enable_floating_ip             = null
+  idle_timeout_in_minutes        = null
+  load_distribution              = null
+  disable_outbound_snat          = null
+  enable_tcp_reset               = null
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.lb_backend_address_pool_vmss.id]
 }
 
 # -
@@ -79,25 +107,34 @@ resource "azurerm_private_link_service" "pls" {
   location            = local.location
   resource_group_name = data.azurerm_resource_group.rg.name
   nat_ip_configuration {
-    name                       = "${var.prefix}pls${var.suffix}natcfg001" #(Required) Specifies the name which should be used for the NAT IP Configuration. Changing this forces a new resource to be created.
+    name                       = "${var.prefix}pls${var.suffix}natcfg001"
     subnet_id                  = var.subnet_id_private_link
-    primary                    = true   #(Required) Is this is the Primary IP Configuration? Changing this forces a new resource to be created.
-    private_ip_address         = null   #(Optional) Specifies a Private Static IP Address for this IP Configuration.
-    private_ip_address_version = "IPv4" #(Optional) The version of the IP Protocol which should be used. At this time the only supported value is IPv4. Defaults to IPv4.
+    primary                    = true
+    private_ip_address         = null #(Optional) Specifies a Private Static IP Address for this IP Configuration.
+    private_ip_address_version = "IPv4"
   }
 
   nat_ip_configuration {
-    name                       = "${var.prefix}pls${var.suffix}natcfg002" #(Required) Specifies the name which should be used for the NAT IP Configuration. Changing this forces a new resource to be created.
+    name                       = "${var.prefix}pls${var.suffix}natcfg002"
     subnet_id                  = var.subnet_id_private_link
-    primary                    = false  #(Required) Is this is the Primary IP Configuration? Changing this forces a new resource to be created.
-    private_ip_address         = null   #(Optional) Specifies a Private Static IP Address for this IP Configuration.
-    private_ip_address_version = "IPv4" #(Optional) The version of the IP Protocol which should be used. At this time the only supported value is IPv4. Defaults to IPv4.
+    primary                    = false
+    private_ip_address         = null #(Optional) Specifies a Private Static IP Address for this IP Configuration.
+    private_ip_address_version = "IPv4"
   }
-  load_balancer_frontend_ip_configuration_ids = [azurerm_lb.lbi.frontend_ip_configuration.0.id]                                                                                                                                          #(Required) A list of Frontend IP Configuration ID's from a Standard Load Balancer, where traffic from the Private Link Service should be routed. You can use Load Balancer Rules to direct this traffic to appropriate backend pools where your applications are running.
-  auto_approval_subscription_ids              = var.private_link_service_auto_approval_subscription_ids[0] == "current" ? [data.azurerm_client_config.current.subscription_id] : var.private_link_service_auto_approval_subscription_ids #(Optional) A list of Subscription UUID/GUID's that will be automatically be able to use this Private Link Service.
-  enable_proxy_protocol                       = null                                                                                                                                                                                     #(Optional) Should the Private Link Service support the Proxy Protocol? Defaults to false.
-  visibility_subscription_ids                 = var.private_link_service_visibility_subscription_ids[0] == "current" ? [data.azurerm_client_config.current.subscription_id] : var.private_link_service_visibility_subscription_ids       #(Optional) A list of Subscription UUID/GUID's that will be able to see this Private Link Service.
-  tags                                        = local.tags
+  load_balancer_frontend_ip_configuration_ids = [azurerm_lb.lbi.frontend_ip_configuration.0.id]
+  auto_approval_subscription_ids = var.private_link_service_auto_approval_subscription_ids[0] == "current" ? [
+    data.azurerm_client_config.current.subscription_id
+  ] : var.private_link_service_auto_approval_subscription_ids
+  enable_proxy_protocol = null
+  visibility_subscription_ids = var.private_link_service_visibility_subscription_ids[0] == "current" ? [
+    data.azurerm_client_config.current.subscription_id
+  ] : var.private_link_service_visibility_subscription_ids
+  tags = local.tags
+  lifecycle {
+    ignore_changes = [
+      tags
+    ]
+  }
 }
 
 # -
@@ -110,13 +147,16 @@ resource "random_password" "password" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
-  depends_on                                        = [azurerm_lb_probe.lb_probe, azurerm_lb_rule.lb_rule]
+  depends_on = [
+    azurerm_lb_probe.lb_probe, azurerm_lb_probe.lb_probe_vmss, azurerm_lb_rule.lb_rule, azurerm_lb_rule.lb_rule_vmss,
+    azurerm_lb_backend_address_pool.lb_backend_address_pool_vmss
+  ]
   name                                              = "${var.prefix}vmss${var.suffix}"
   location                                          = local.location
   resource_group_name                               = data.azurerm_resource_group.rg.name
   sku                                               = var.vmss_linux.sku
   proximity_placement_group_id                      = lookup(var.vmss_linux, "proximity_placement_group_id", null)
-  admin_username                                    = lookup(var.vmss_linux, "admin_username", null)
+  admin_username                                    = var.vmss_linux_admin.admin_username == "none" ? lookup(var.vmss_linux, "admin_username", null) : var.vmss_linux_admin.admin_username
   admin_password                                    = lookup(var.vmss_linux, "admin_password", null) == null ? random_password.password.result : var.vmss_linux.admin_password
   custom_data                                       = lookup(var.vmss_linux, "custom_data", null)
   disable_password_authentication                   = lookup(var.vmss_linux, "disable_password_authentication", false)
@@ -129,13 +169,19 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
   instances                                         = lookup(var.vmss_linux, "instances", null)
   computer_name_prefix                              = lookup(var.vmss_linux, "computer_name_prefix", null)
   do_not_run_extensions_on_overprovisioned_machines = lookup(var.vmss_linux, "do_not_run_extensions_on_overprovisioned_machines", null)
-  health_probe_id                                   = [for x in azurerm_lb_probe.lb_probe : x.id][0]
+  health_probe_id                                   = azurerm_lb_probe.lb_probe_vmss.id
   overprovision                                     = lookup(var.vmss_linux, "overprovision", null)
-  scale_in_policy                                   = lookup(var.vmss_linux, "scale_in_policy", null)
-  single_placement_group                            = lookup(var.vmss_linux, "single_placement_group", null)
-  upgrade_mode                                      = lookup(var.vmss_linux, "upgrade_mode", null)
-  zone_balance                                      = lookup(var.vmss_linux, "zone_balance", null)
-  zones                                             = lookup(var.vmss_linux, "zones", null)
+  dynamic "scale_in" {
+    for_each = lookup(var.vmss_linux, "scale_in", [])
+    content {
+      rule                   = lookup(scale_in.value, "rule", null)
+      force_deletion_enabled = lookup(scale_in.value, "force_deletion_enabled", null)
+    }
+  }
+  single_placement_group = lookup(var.vmss_linux, "single_placement_group", null)
+  upgrade_mode           = lookup(var.vmss_linux, "upgrade_mode", null)
+  zone_balance           = lookup(var.vmss_linux, "zone_balance", null)
+  zones                  = lookup(var.vmss_linux, "zones", null)
 
   dynamic "network_interface" {
     for_each = var.vmss_linux.network_interfaces
@@ -151,10 +197,12 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
         name                                         = "${var.prefix}nic${var.suffix}cfg"
         application_gateway_backend_address_pool_ids = lookup(network_interface.value, "application_gateway_backend_address_pool_ids", null)
         application_security_group_ids               = lookup(network_interface.value, "application_security_group_ids", [])
-        load_balancer_backend_address_pool_ids       = [azurerm_lb_backend_address_pool.lb_backend_address_pool.id]
-        load_balancer_inbound_nat_rules_ids          = lookup(network_interface.value, "load_balancer_inbound_nat_rules_ids", [])
-        primary                                      = lookup(network_interface.value, "primary", false)
-        subnet_id                                    = var.subnet_id_virtual_machine_scale_set
+        load_balancer_backend_address_pool_ids = [
+          azurerm_lb_backend_address_pool.lb_backend_address_pool_vmss.id
+        ]
+        load_balancer_inbound_nat_rules_ids = lookup(network_interface.value, "load_balancer_inbound_nat_rules_ids", [])
+        primary                             = lookup(network_interface.value, "primary", false)
+        subnet_id                           = var.subnet_id_virtual_machine_scale_set
 
         dynamic "public_ip_address" {
           for_each = lookup(network_interface.value, "public_ip_address", [])
@@ -196,6 +244,14 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
     for_each = lookup(var.vmss_linux, "additional_capabilities", [])
     content {
       ultra_ssd_enabled = lookup(additional_capabilities.value, "ultra_ssd_enabled", false)
+    }
+  }
+
+  dynamic "admin_ssh_key" {
+    for_each = var.vmss_linux_admin.admin_ssh_public_key == "none" ? [] : [{}]
+    content {
+      public_key = var.vmss_linux_admin.admin_ssh_public_key
+      username   = var.vmss_linux_admin.admin_username
     }
   }
 
@@ -285,11 +341,11 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
     }
   }
 
-  dynamic "terminate_notification" {
-    for_each = lookup(var.vmss_linux, "terminate_notification", [])
+  dynamic "termination_notification" {
+    for_each = lookup(var.vmss_linux, "termination_notification", [])
     content {
-      enabled = lookup(terminate_notification.value, "enabled", false)
-      timeout = lookup(terminate_notification.value, "timeout", null)
+      enabled = lookup(termination_notification.value, "enabled", false)
+      timeout = lookup(termination_notification.value, "timeout", null)
     }
   }
 
@@ -297,6 +353,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
   // Ignore changes that are managed outside Terraform
   lifecycle {
     ignore_changes = [
+      tags,
       instances
     ]
   }
@@ -305,7 +362,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
 locals {
   vmss_linux_extension_settings = {
     commandToExecute = join(" && ", [for x in var.forwarding_rules : "sudo ./ip_fwd.sh -i eth0 -f ${x.source_port} -a ${x.destination_address} -b ${x.destination_port}"])
-    fileUris         = ["https://raw.githubusercontent.com/sajitsasi/az-ip-fwd/cc2caaad627e90dcf75b751169bd0cac251223d3/ip_fwd.sh"]
+    fileUris = [
+      "https://raw.githubusercontent.com/sajitsasi/az-ip-fwd/cc2caaad627e90dcf75b751169bd0cac251223d3/ip_fwd.sh"
+    ]
   }
 }
 

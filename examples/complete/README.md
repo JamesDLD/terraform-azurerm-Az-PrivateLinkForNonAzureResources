@@ -1,8 +1,14 @@
+Test
+-----
+[![Build Status](https://dev.azure.com/jamesdld23/vpc_lab/_apis/build/status/Terraform%20module%20Az-PrivateLinkForNonAzureResources?repoName=JamesDLD%2Fterraform-azurerm-Az-PrivateLinkForNonAzureResources&branchName=release%2F0.2.0)](https://dev.azure.com/jamesdld23/vpc_lab/_build/latest?definitionId=20&repoName=JamesDLD%2Fterraform-azurerm-Az-PrivateLinkForNonAzureResources&branchName=release%2F0.2.0)
+
+
 Content
 -----
-Use cases described in the following article : [Access to any non Azure resources with an Azure Private Link (Terraform module)](https://medium.com/microsoftazure/access-to-any-non-azure-resources-with-an-azure-private-link-terraform-module-b6129992dad9).
-
-This module will create the following objects : 
+Use cases described in the following
+article : [Access to any non Azure resources with an Azure Private Link (Terraform module)](https://medium.com/@jamesdld23/access-to-any-non-azure-resources-with-an-azure-private-link-b6129992dad9)
+.
+This module will create the following objects :
 
 - [Azure Private Link Service](https://docs.microsoft.com/en-us/azure/private-link/private-link-service-overview?WT.mc_id=AZ-MVP-5003548)
 - [Azure Standard Load Balancer](https://docs.microsoft.com/en-us/azure/private-link/create-private-link-service-portal?WT.mc_id=AZ-MVP-5003548#create-an-internal-load-balancer)
@@ -10,11 +16,12 @@ This module will create the following objects :
 
 Requirement
 -----
-Terraform v1.1.3 and above. 
+Terraform v1.3.4 and above.
 AzureRm provider version v2.81.0 and above.
 
 Usage
 -----
+
 ```hcl
 #Set the terraform backend
 terraform {
@@ -27,6 +34,11 @@ provider "azurerm" {
   features {}
 }
 
+variable "subscription_id" {
+  description = "Azure subscription Id."
+}
+
+#Set variable
 variable "forwarding_rules" {
   description = "Forwarding Rule to Endpoint (cf https://docs.microsoft.com/en-us/azure/data-factory/tutorial-managed-virtual-network-on-premise-sql-server?WT.mc_id=AZ-MVP-5003548&WT.mc_id=AZ-MVP-5003548#creating-forwarding-rule-to-endpoint)."
   type        = any
@@ -52,7 +64,7 @@ variable "forwarding_rules" {
 #Call module
 module "Az-PrivateLinkForNonAzureResources-Demo" {
   source   = "JamesDLD/Az-PrivateLinkForNonAzureResources/azurerm"
-  version  = "0.1.0"
+  version  = "0.2.0"
   location = "westeurope"
   additional_tags = {
     usage = "demo"
@@ -65,5 +77,18 @@ module "Az-PrivateLinkForNonAzureResources-Demo" {
   subnet_id_virtual_machine_scale_set = "/subscriptions/xxxxxxxxxxxxxx/resourceGroups/xxxxxxxxxxxxxx/providers/Microsoft.Network/virtualNetworks/xxxxxxxxxxxxxx/subnets/xxxxxxxxxxxxxxsub3"
   forwarding_rules                    = var.forwarding_rules
 }
+
+output "azurerm_lb_id" {
+  value = module.Az-PrivateLinkForNonAzureResources-Demo.lb_id
+}
+
+output "azurerm_linux_virtual_machine_scale_set_id" {
+  value = module.Az-PrivateLinkForNonAzureResources-Demo.linux_virtual_machine_scale_set_id
+}
+
+output "azurerm_private_link_service_id" {
+  value = module.Az-PrivateLinkForNonAzureResources-Demo.private_link_service_id
+}
+
 
 ```

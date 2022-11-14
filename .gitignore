@@ -4,9 +4,15 @@
 *.DS_Store
 *.tfstate.lock.info
 *.terraform.lock.hcl
+examples/complete/main.tf
 
 # Directory
 .terraform/
 
 # Secret files
-**/secret/*
+**/secret/*.json
+**/secret/*.tfvars
+
+# JetBrains IntelliJ IDEA
+*.iml
+.idea/
