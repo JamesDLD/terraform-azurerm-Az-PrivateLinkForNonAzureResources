@@ -71,7 +71,7 @@ resource "azurerm_subnet_nat_gateway_association" "Demo-Subnet-compute" {
 
 #Call module
 module "Az-PrivateLinkForNonAzureResources-Demo" {
-  source = "git::https://github.com/JamesDLD/terraform-azurerm-Az-PrivateLinkForNonAzureResources.git//?ref=master"
+  source = "git::https://github.com/JamesDLD/terraform-azurerm-Az-PrivateLinkForNonAzureResources.git//?ref=main"
   #source = "git::https://github.com/JamesDLD/terraform-azurerm-Az-PrivateLinkForNonAzureResources.git//?ref=release/0.2.0"
   #source = "../../../"
   #source   = "JamesDLD/Az-PrivateLinkForNonAzureResources/azurerm"
