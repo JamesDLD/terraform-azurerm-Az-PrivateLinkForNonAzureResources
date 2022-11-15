@@ -25,7 +25,8 @@ Usage
 ```hcl
 #Set the terraform backend
 terraform {
-  backend "local" {} #Using a local backend just for the demo, the reco is to use a remote backend, see : https://jamesdld.github.io/terraform/Best-Practice/BestPractice-1/
+  backend "local" {}
+  #Using a local backend just for the demo, the reco is to use a remote backend, see : https://jamesdld.github.io/terraform/Best-Practice/BestPractice-1/
 }
 
 #Set the Provider
@@ -41,41 +42,41 @@ variable "subscription_id" {
 #Set variable
 variable "forwarding_rules" {
   description = "Forwarding Rule to Endpoint (cf https://docs.microsoft.com/en-us/azure/data-factory/tutorial-managed-virtual-network-on-premise-sql-server?WT.mc_id=AZ-MVP-5003548&WT.mc_id=AZ-MVP-5003548#creating-forwarding-rule-to-endpoint)."
-  type        = any
+  type = any
   default = {
     "sql-demo1" = {
-      source_port         = "1433"
+      source_port = "1433"
       destination_address = "sql1.dld23.com"
-      destination_port    = "1433"
+      destination_port = "1433"
     }
     "sql-demo2" = {
-      source_port         = "1434"
+      source_port = "1434"
       destination_address = "sql2.dld23.com"
-      destination_port    = "1433"
+      destination_port = "1433"
     }
     "sftp-demo1" = {
-      source_port         = "221"
+      source_port = "221"
       destination_address = "sftp.dld23.com"
-      destination_port    = "22"
+      destination_port = "22"
     }
   }
 }
 
 #Call module
 module "Az-PrivateLinkForNonAzureResources-Demo" {
-  source   = "JamesDLD/Az-PrivateLinkForNonAzureResources/azurerm"
-  version  = "0.2.0"
+  source = "JamesDLD/Az-PrivateLinkForNonAzureResources/azurerm"
+  version = "0.2.0"
   location = "westeurope"
   additional_tags = {
     usage = "demo"
   }
-  prefix                              = "dlddemo"
-  suffix                              = "001"
-  resource_group_name                 = "xxxxxxxxxxxxxx"
-  subnet_id_private_link              = "/subscriptions/xxxxxxxxxxxxxx/resourceGroups/xxxxxxxxxxxxxx/providers/Microsoft.Network/virtualNetworks/xxxxxxxxxxxxxx/subnets/xxxxxxxxxxxxxxsub1"
-  subnet_id_load_balancer             = "/subscriptions/xxxxxxxxxxxxxx/resourceGroups/xxxxxxxxxxxxxx/providers/Microsoft.Network/virtualNetworks/xxxxxxxxxxxxxx/subnets/xxxxxxxxxxxxxxsub2"
+  prefix = "dlddemo"
+  suffix = "001"
+  resource_group_name = "xxxxxxxxxxxxxx"
+  subnet_id_private_link = "/subscriptions/xxxxxxxxxxxxxx/resourceGroups/xxxxxxxxxxxxxx/providers/Microsoft.Network/virtualNetworks/xxxxxxxxxxxxxx/subnets/xxxxxxxxxxxxxxsub1"
+  subnet_id_load_balancer = "/subscriptions/xxxxxxxxxxxxxx/resourceGroups/xxxxxxxxxxxxxx/providers/Microsoft.Network/virtualNetworks/xxxxxxxxxxxxxx/subnets/xxxxxxxxxxxxxxsub2"
   subnet_id_virtual_machine_scale_set = "/subscriptions/xxxxxxxxxxxxxx/resourceGroups/xxxxxxxxxxxxxx/providers/Microsoft.Network/virtualNetworks/xxxxxxxxxxxxxx/subnets/xxxxxxxxxxxxxxsub3"
-  forwarding_rules                    = var.forwarding_rules
+  forwarding_rules = var.forwarding_rules
 }
 
 output "azurerm_lb_id" {
