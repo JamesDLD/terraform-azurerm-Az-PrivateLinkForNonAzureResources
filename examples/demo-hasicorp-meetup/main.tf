@@ -91,8 +91,8 @@ resource "azurerm_subnet" "Demo" {
 
 #Call module
 module "Az-PrivateLinkForNonAzureResources-Demo" {
-  source   = "JamesDLD/Az-PrivateLinkForNonAzureResources/azurerm"
-  version  = "0.2.0"
+  source                              = "JamesDLD/Az-PrivateLinkForNonAzureResources/azurerm"
+  version                             = "0.2.0"
   location                            = data.azurerm_resource_group.rg.location
   additional_tags                     = var.additional_tags
   prefix                              = "demo"
