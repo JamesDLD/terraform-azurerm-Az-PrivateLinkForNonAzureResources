@@ -139,7 +139,7 @@ resource "azurerm_windows_web_app" "Demo" {
     }
 
     ip_restriction {
-      action     = "Deny"
+      action     = "Allow"
       ip_address = "4.231.41.18/32"
       name       = "nat-gateway-of-the-private-link"
     }
