@@ -20,7 +20,7 @@ locals {
 # - Azure Load Balancer
 # -
 resource "azurerm_lb" "lbi" {
-  name                = "${var.prefix}lbi${var.suffix}"
+  name                = coalesce(var.lb_name, "${var.prefix}lbi${var.suffix}")
   location            = local.location
   resource_group_name = data.azurerm_resource_group.rg.name
   sku                 = "Standard"
@@ -54,11 +54,11 @@ resource "azurerm_lb_probe" "lb_probe" {
   for_each            = var.forwarding_rules
   name                = "${each.key}-probe${each.value.source_port}"
   loadbalancer_id     = azurerm_lb.lbi.id
-  protocol            = null
+  protocol            = lookup(each.value, "protocol", var.lb_probe_default_specification.protocol)
   port                = each.value.source_port
-  request_path        = null
-  interval_in_seconds = 15
-  number_of_probes    = 2
+  request_path        = lookup(each.value, "request_path", var.lb_probe_default_specification.request_path)
+  interval_in_seconds = lookup(each.value, "interval_in_seconds", var.lb_probe_default_specification.interval_in_seconds)
+  number_of_probes    = lookup(each.value, "number_of_probes", var.lb_probe_default_specification.number_of_probes)
 }
 
 resource "azurerm_lb_backend_address_pool" "lb_backend_address_pool_vmss" {
@@ -103,7 +103,7 @@ resource "azurerm_lb_rule" "lb_rule_vmss" {
 # - Azure Private Link Service
 # -
 resource "azurerm_private_link_service" "pls" {
-  name                = "${var.prefix}pls${var.suffix}"
+  name                = coalesce(var.private_link_service_name, "${var.prefix}pls${var.suffix}")
   location            = local.location
   resource_group_name = data.azurerm_resource_group.rg.name
   nat_ip_configuration {
@@ -141,9 +141,11 @@ resource "azurerm_private_link_service" "pls" {
 # - Azure Virtual Machine Scale Set
 # -
 resource "random_password" "password" {
-  length           = 16
-  special          = true
-  override_special = "_%@"
+  length  = 16
+  lower   = true
+  upper   = true
+  numeric = true
+  special = true
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
@@ -151,7 +153,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
     azurerm_lb_probe.lb_probe, azurerm_lb_probe.lb_probe_vmss, azurerm_lb_rule.lb_rule, azurerm_lb_rule.lb_rule_vmss,
     azurerm_lb_backend_address_pool.lb_backend_address_pool_vmss
   ]
-  name                                              = "${var.prefix}vmss${var.suffix}"
+  name                                              = coalesce(var.virtual_machine_scale_set_name, "${var.prefix}vmss${var.suffix}")
   location                                          = local.location
   resource_group_name                               = data.azurerm_resource_group.rg.name
   sku                                               = var.vmss_linux.sku
@@ -207,7 +209,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
         dynamic "public_ip_address" {
           for_each = lookup(network_interface.value, "public_ip_address", [])
           content {
-            name                    = "${var.prefix}pip${public_ip_address.value["instance"]}"
+            name                    = lookup(public_ip_address.value, "name", "${var.prefix}pip${public_ip_address.value["instance"]}")
             domain_name_label       = lookup(public_ip_address.value, "domain_name_label", null)
             idle_timeout_in_minutes = lookup(public_ip_address.value, "idle_timeout_in_minutes", null)
             public_ip_prefix_id     = lookup(public_ip_address.value, "public_ip_prefix_id", null)
@@ -248,7 +250,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
   }
 
   dynamic "admin_ssh_key" {
-    for_each = var.vmss_linux_admin.admin_ssh_public_key == "none" ? [] : [{}]
+    for_each = lookup(var.vmss_linux_admin, "admin_ssh_public_key", "none") == "none" ? [] : [{}]
     content {
       public_key = var.vmss_linux_admin.admin_ssh_public_key
       username   = var.vmss_linux_admin.admin_username
@@ -259,7 +261,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
     for_each = lookup(var.vmss_linux, "automatic_os_upgrade_policy", [])
     content {
       disable_automatic_rollback  = automatic_os_upgrade_policy.value.disable_automatic_rollback
-      enable_automatic_os_upgrade = automatic_os_upgrade_policy.value.enable_automatic_os_upgrade
+      enable_automatic_os_upgrade = lookup(automatic_os_upgrade_policy.value, "enable_automatic_os_upgrade", null)
     }
   }
 
@@ -354,7 +356,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
   lifecycle {
     ignore_changes = [
       tags,
-      instances
+      instances,
+      identity
     ]
   }
 }

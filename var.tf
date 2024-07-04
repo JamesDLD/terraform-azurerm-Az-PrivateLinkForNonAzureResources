@@ -22,6 +22,24 @@ variable "suffix" {
   type        = string
 }
 
+variable "virtual_machine_scale_set_name" {
+  description = "(Optional) Virtual Machine scale set name."
+  default     = ""
+  type        = string
+}
+
+variable "private_link_service_name" {
+  description = "(Optional) Private Link service name."
+  default     = ""
+  type        = string
+}
+
+variable "lb_name" {
+  description = "(Optional) Load balancer name."
+  default     = ""
+  type        = string
+}
+
 variable "resource_group_name" {
   description = "(Required) The resource group name of the Private Link resources."
   type        = string
@@ -47,6 +65,17 @@ variable "forwarding_rules" {
   type        = any
 }
 
+variable "lb_probe_default_specification" {
+  description = "Load Balancer default specifications"
+  type        = any
+  default = {
+    protocol            = null
+    request_path        = null
+    interval_in_seconds = 15
+    number_of_probes    = 2
+  }
+}
+
 variable "private_link_service_visibility_subscription_ids" {
   description = "(Optional) A list of Subscription UUID/GUID's that will be able to see this Private Link Service."
   type        = list(any)
@@ -67,7 +96,7 @@ variable "vmss_linux" {
   description = "(Optional) The Virtual Machine Scale Set."
   type        = any
   default = {
-    sku          = "Standard_DS1_v2" #"standard_f1s" #Supports Enabling Accelerated Networking For Vmss
+    sku          = "standard_f1s" //"Standard_DS1_v2" #Supports Enabling Accelerated Networking For Vmss
     upgrade_mode = "Automatic"
     automatic_os_upgrade_policy = [
       {
@@ -83,13 +112,19 @@ variable "vmss_linux" {
         pause_time_between_batches              = "PT0S"
       }
     ]
+    automatic_os_upgrade_policy = [
+      {
+        disable_automatic_rollback  = false
+        enable_automatic_os_upgrade = true
+      }
+    ]
     admin_username = "demonatadm"
     instances      = 2
     source_image_reference = [
       {
         publisher = "Canonical"
-        offer     = "UbuntuServer" #Find specific images : az vm image list --offer UbuntuServer --all --output table
-        sku       = "18.04-LTS"
+        offer     = "0001-com-ubuntu-server-jammy" #Find specific images : az vm image list --offer 0001-com-ubuntu-server-jammy --all --output table
+        sku       = "22_04-lts-gen2"
         version   = "latest"
       }
     ]
