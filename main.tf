@@ -156,7 +156,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_linux" {
   name                                              = coalesce(var.virtual_machine_scale_set_name, "${var.prefix}vmss${var.suffix}")
   location                                          = local.location
   resource_group_name                               = data.azurerm_resource_group.rg.name
-  sku                                               = var.vmss_linux.sku
+  sku                                               = coalesce(var.vmss_sku, var.vmss_linux.sku)
   proximity_placement_group_id                      = lookup(var.vmss_linux, "proximity_placement_group_id", null)
   admin_username                                    = var.vmss_linux_admin.admin_username == "none" ? lookup(var.vmss_linux, "admin_username", null) : var.vmss_linux_admin.admin_username
   admin_password                                    = lookup(var.vmss_linux, "admin_password", null) == null ? random_password.password.result : var.vmss_linux.admin_password

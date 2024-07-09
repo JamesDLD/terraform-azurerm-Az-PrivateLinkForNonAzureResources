@@ -96,7 +96,7 @@ variable "vmss_linux" {
   description = "(Optional) The Virtual Machine Scale Set."
   type        = any
   default = {
-    sku          = "standard_f1s" //"Standard_DS1_v2" #Supports Enabling Accelerated Networking For Vmss
+    sku          = "Standard_B2ats_v2" //"standard_f1s" #Supports Enabling Accelerated Networking For Vmss
     upgrade_mode = "Automatic"
     automatic_os_upgrade_policy = [
       {
@@ -123,8 +123,8 @@ variable "vmss_linux" {
     source_image_reference = [
       {
         publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy" #Find specific images : az vm image list --offer 0001-com-ubuntu-server-jammy --all --output table
-        sku       = "22_04-lts-gen2"
+        offer     = "0001-com-ubuntu-server-focal" #Find specific images : az vm image list --offer 0001-com-ubuntu-server-jammy --all --output table
+        sku       = "20_04-lts-gen2"               //Use a supported OS for the Linux Dependency agent: https://learn.microsoft.com/en-us/azure/virtual-machines/extensions/agent-dependency-linux?WT.mc_id=AZ-MVP-5003548#operating-system
         version   = "latest"
       }
     ]
@@ -151,4 +151,9 @@ variable "vmss_linux_admin" {
     admin_username       = "none"
     admin_ssh_public_key = "none"
   }
+}
+
+variable "vmss_sku" {
+  description = "Virtual Machine Scale Set credential option"
+  default     = ""
 }
