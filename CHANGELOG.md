@@ -1,3 +1,9 @@
+## 0.3.2 (July 17, 2024)
+
+ENHANCEMENTS:
+
+- Comply with VMSS password policy
+
 ## 0.3.0 (July 7, 2024)
 
 ENHANCEMENTS:
